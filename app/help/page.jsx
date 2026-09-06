@@ -3,6 +3,8 @@
 import { useState } from "react";
 import SubpageShell from "../components/SubpageShell";
 
+export const dynamic = "force-static";
+
 const languageCopy = {
   en: {
     name: "English",
@@ -42,7 +44,7 @@ export default function HelpPage() {
   return (
     <SubpageShell eyebrow="Customer Help" title="How PK LIGHTS works" intro="A simple guide to our wholesale business, ordering process, delivery coverage and conditions.">
       <section className="info-content">
-        <div className="quick-answer"><b>In one line</b><p>We help shops and project buyers source lighting products in wholesale quantities and send confirmed orders through parcel services.</p><a href="/quote">Request a quotation →</a></div>
+        <div className="quick-answer"><b>In one line</b><p>We help shops and project buyers source lighting products in wholesale quantities and send confirmed orders through parcel services.</p><a href="/newVersion/quote.html">Request a quotation →</a></div>
         <section id="ordering" className="info-section"><span className="kicker">Ordering</span><h2>Four simple steps</h2><div className="steps-grid">{[["01","Share requirement","Send product name/photo, required quantity and colour or specification."],["02","Confirm details","We check stock, MOQ, rate, tax and delivery availability."],["03","Complete payment","Full advance payment confirms the wholesale order."],["04","Receive dispatch","Confirmed orders are prepared and dispatched with parcel details."]].map(([n,t,d])=><article key={n}><span>{n}</span><h3>{t}</h3><p>{d}</p></article>)}</div></section>
         <section id="conditions" className="info-section"><span className="kicker">Order conditions</span><h2>Know before confirming</h2><div className="condition-grid">{[["Wholesale only","We supply bulk quantities to shops, resellers, contractors and project buyers."],["MOQ applies","Minimum quantity depends on the product and packing."],["Advance payment","Full payment is required before dispatch. Credit and partial payment are not available."],["Verify before ordering","Confirm model, colour, wattage, quantity and other specifications before payment."],["No returns once sold","Products are not returnable after sale, so please check all details carefully."],["Prices may change","Wholesale rates depend on stock, quantity, tax and current supplier pricing."]].map(([t,d])=><article key={t}><h3>{t}</h3><p>{d}</p></article>)}</div></section>
         <section id="supplier-area" className="supplier-panel"><div><span className="kicker">Supplier & service area</span><h2>Sourcing across India. Focused service across South India.</h2><p>Our supplier network helps us source a broad range of lighting and electrical products. Customer delivery is mainly focused on Kerala, Tamil Nadu, Karnataka, Andhra Pradesh and Telangana, with parcel options for other Indian locations depending on the order.</p></div><div className="area-list"><span>Kerala</span><span>Tamil Nadu</span><span>Karnataka</span><span>Andhra Pradesh</span><span>Telangana</span><span>Other India locations — confirm first</span></div></section>

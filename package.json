@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vinext build",
+    "build:pages": "vinext build && node scripts/prepare-github-pages.mjs",
     "start": "vinext start"
   },
   "dependencies": {

@@ -1,5 +1,7 @@
 import SubpageShell from "../components/SubpageShell";
 
+export const dynamic = "force-static";
+
 export default function ContactPage() {
   return (
     <SubpageShell eyebrow="Contact" title="Talk directly with PK LIGHTS" intro="For availability, product matching, MOQ and current wholesale quotations.">
