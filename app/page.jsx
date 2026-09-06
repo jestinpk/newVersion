@@ -300,8 +300,8 @@ export default function HomePage() {
 
       <section className="hero">
         <picture>
-          <source media="(max-width: 760px)" srcSet="/newVersion/images/hero-showroom-960.webp" />
-          <img className="hero-image" src="/newVersion/images/hero-showroom-1600.webp" alt="Contemporary architectural lighting showroom" width="1600" height="900" loading="eager" fetchPriority="high" decoding="async" />
+          <source media="(max-width: 760px)" srcSet="/newVersion/images/hero-warehouse-960.webp" />
+          <img className="hero-image" src="/newVersion/images/hero-warehouse-1600.webp" alt="Organized wholesale lighting distribution warehouse with dispatch-ready stock" width="1600" height="900" loading="eager" fetchPriority="high" decoding="async" />
         </picture>
         <div className="hero-scrim" />
         <div className="hero-copy">
