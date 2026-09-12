@@ -381,10 +381,10 @@ export default function HomePage() {
         </div>
         <div className="category-grid">
           {[
-            ["LED & Commercial", "Bulbs, panels, flood and project lighting", "/newVersion/images/commercial-range-720.webp", "All"],
-            ["Decorative Lighting", "Pendant, festive and architectural décor", "/newVersion/images/decorative-range-720.webp", "Decorative"],
-            ["Technical Lighting", "Pixel, programmable, track and stage lighting", "/newVersion/images/commercial-range-720.webp", "Pixel LED"],
-            ["Drivers & Electrical", "Power supplies, controllers and accessories", "/newVersion/images/decorative-range-720.webp", "Accessories"],
+            ["LED & Commercial", "Bulbs, panels, flood and project lighting", "/newVersion/images/category-commercial-installation.webp", "All"],
+            ["Decorative Lighting", "Pendant, festive and architectural décor", "/newVersion/images/category-decorative-installation.webp", "Decorative"],
+            ["Technical Lighting", "Pixel, programmable, track and stage lighting", "/newVersion/images/category-technical-installation.webp", "Pixel LED"],
+            ["Drivers & Electrical", "Power supplies, controllers and accessories", "/newVersion/images/category-electrical-installation.webp", "Accessories"],
           ].map(([title, copy, image, filter], index) => (
             <a className={`category-card crop-${index + 1}`} href="#catalogue" key={title} onClick={() => setCategory(filter)}>
               <img src={image} alt="" width="720" height="540" loading="lazy" decoding="async" />
