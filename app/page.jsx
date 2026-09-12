@@ -113,6 +113,10 @@ const products = [
 
 const categories = ["All", ...new Set(products.map((product) => product.category))];
 
+function categoryTabId(category) {
+  return `product-tab-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+}
+
 function productImage(product) {
   return product.image;
 }
@@ -136,6 +140,17 @@ function ProductArt({ product, priority = false }) {
 
 function Header({ cartCount, openCart }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef(null);
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const closeOnEscape = event => {
+      if (event.key !== "Escape") return;
+      setMenuOpen(false);
+      window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [menuOpen]);
   return (
     <>
       <div className="utility-bar"><span>Wholesale enquiries</span><span>South India delivery</span><span>Mon–Sat · 10am–6pm</span></div>
@@ -155,7 +170,7 @@ function Header({ cartCount, openCart }) {
         <div className="header-actions">
           <a className="call-btn" href="/newVersion/quote.html">Detailed quote</a>
           <button className="enquiry-nav" onClick={openCart}>WhatsApp Enquiry <span>{cartCount}</span></button>
-          <button className="menu-btn" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-navigation">{menuOpen ? "Close" : "Menu"}</button>
+          <button ref={menuButtonRef} className="menu-btn" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="main-navigation">{menuOpen ? "Close" : "Menu"}</button>
         </div>
       </header>
     </>
@@ -250,6 +265,22 @@ export default function HomePage() {
 
   const cartItems = products.filter((product) => cart[product.id]);
   const cartCount = cartItems.length;
+
+  function changeCategory(nextCategory) {
+    setCategory(nextCategory);
+  }
+
+  function handleCategoryKey(event, index) {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    let next = index;
+    if (event.key === "ArrowLeft") next = (index - 1 + categories.length) % categories.length;
+    if (event.key === "ArrowRight") next = (index + 1) % categories.length;
+    if (event.key === "Home") next = 0;
+    if (event.key === "End") next = categories.length - 1;
+    changeCategory(categories[next]);
+    document.getElementById(categoryTabId(categories[next]))?.focus();
+  }
 
   function addProduct(product) {
     setCart((current) => ({
@@ -351,8 +382,19 @@ export default function HomePage() {
 
         <div className="catalogue-tools">
           <div className="category-tabs" role="tablist" aria-label="Product categories">
-            {categories.map((item) => (
-              <button key={item} role="tab" aria-selected={category === item} className={category === item ? "active" : ""} onClick={() => setCategory(item)}>{item}</button>
+            {categories.map((item, index) => (
+              <button
+                key={item}
+                id={categoryTabId(item)}
+                type="button"
+                role="tab"
+                aria-selected={category === item}
+                aria-controls="product-grid-panel"
+                tabIndex={category === item ? 0 : -1}
+                className={category === item ? "active" : ""}
+                onClick={() => changeCategory(item)}
+                onKeyDown={event => handleCategoryKey(event, index)}
+              >{item}</button>
             ))}
           </div>
           <span className="filter-hint" aria-hidden="true">Swipe categories →</span>
@@ -362,7 +404,7 @@ export default function HomePage() {
           </label>
         </div>
 
-        <div className="product-grid">
+        <div id="product-grid-panel" className="product-grid" role="tabpanel" aria-labelledby={categoryTabId(category)}>
           {visibleProducts.map((product) => {
             const inCart = Boolean(cart[product.id]);
             return (
@@ -388,10 +430,10 @@ export default function HomePage() {
               </article>
             );
           })}
+          {visibleProducts.length === 0 && (
+            <div className="empty-state"><h3>No exact match</h3><p>Try another category or a shorter search term.</p></div>
+          )}
         </div>
-        {visibleProducts.length === 0 && (
-          <div className="empty-state"><h3>No exact match</h3><p>Try another category or a shorter search term.</p></div>
-        )}
       </section>
 
       <section className="wholesale" id="wholesale">

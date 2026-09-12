@@ -7,7 +7,18 @@ export const dynamic = "force-static";
 
 const DRIVE_API_URL = "https://script.google.com/macros/s/AKfycby1I2n_RGSgy8osztNv3oqOBmJXWegGe9xn3mWOG3zTGx_bOlPrNFF7QhXr8uhnIM77og/exec";
 const FORMATS = ["pdf", "svg", "png"];
-const EMPTY_FILES = { pdf: [], svg: [], png: [] };
+const FILE_CACHE_KEY = "pk-lights-download-files-v1";
+const SNAPSHOT_UPDATED_AT = "2026-09-12T08:54:00.000Z";
+const SNAPSHOT_FILES = {
+  pdf: [{ id: "1AHeo_p_wONMHW8B4EJNI6OGmSBTWD35c", name: "12v_pixel_toran_designs.pdf", size: 13526630 }],
+  svg: [
+    { id: "1wLcVIHnbxigW0xki-kEiCpvlksD3Ymy0", name: "PK_LIGHTS_RGBWWPY_SAME_LENGTH_3x4_PAGE_1_EDITABLE.svg", size: 121651 },
+    { id: "1_V1Hww5m4ic7p2L0sjKJWNX9Z5dkKPqN", name: "PK_LIGHTS_RGBWWPY_SAME_LENGTH_3x4_PAGE_2_EDITABLE.svg", size: 121651 },
+    { id: "1h9bXpL4FmBwV-z7ZbP998ajm7wenayMj", name: "PK_LIGHTS_RGBWWPY_SAME_LENGTH_3x4_PAGE_3_EDITABLE.svg", size: 121651 },
+    { id: "1Ri_wZyVIKE-Qr8_f-fuibNievNsvDr2m", name: "PK_LIGHTS_RGBWWPY_SAME_LENGTH_3x4_PAGE_4_EDITABLE.svg", size: 121651 },
+  ],
+  png: [{ id: "1UX5hpHfT6YuZoajIk5ygbX_Y3T4wOJ4S", name: "PK_LIGHTS_TRIANGULAR_SINGLE_BULB_PAGE_2_EDITABLE.png", size: 457523 }],
+};
 
 function formatBytes(bytes) {
   const value = Number(bytes);
@@ -37,12 +48,14 @@ function validFile(file) {
 
 export default function DownloadsPage() {
   const [activeFormat, setActiveFormat] = useState("pdf");
-  const [files, setFiles] = useState(EMPTY_FILES);
-  const [status, setStatus] = useState("loading");
+  const [files, setFiles] = useState(SNAPSHOT_FILES);
+  const [status, setStatus] = useState("refreshing");
   const [updatedAt, setUpdatedAt] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [useLightweightPreview, setUseLightweightPreview] = useState(false);
 
   const loadFiles = useCallback(() => {
+    setStatus("refreshing");
     const requestId = `pkLightsDrive_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     const script = document.createElement("script");
     let finished = false;
@@ -59,10 +72,16 @@ export default function DownloadsPage() {
           FORMATS.map(format => [format, (Array.isArray(payload.files[format]) ? payload.files[format] : []).filter(validFile)])
         );
         setFiles(nextFiles);
-        setUpdatedAt(payload.updatedAt || new Date().toISOString());
+        const nextUpdatedAt = payload.updatedAt || new Date().toISOString();
+        setUpdatedAt(nextUpdatedAt);
         setStatus("ready");
+        try {
+          window.localStorage.setItem(FILE_CACHE_KEY, JSON.stringify({ files: nextFiles, updatedAt: nextUpdatedAt }));
+        } catch {
+          // The bundled snapshot still keeps the page useful when storage is unavailable.
+        }
       } else if (nextStatus !== "cancelled") {
-        setStatus(current => current === "ready" ? "stale" : "error");
+        setStatus("stale");
       }
     };
 
@@ -77,6 +96,25 @@ export default function DownloadsPage() {
   }, []);
 
   useEffect(() => {
+    let restoredCachedList = false;
+    try {
+      const cached = JSON.parse(window.localStorage.getItem(FILE_CACHE_KEY) || "null");
+      if (cached?.files && FORMATS.every(format => Array.isArray(cached.files[format]))) {
+        setFiles(cached.files);
+        setUpdatedAt(cached.updatedAt || SNAPSHOT_UPDATED_AT);
+        restoredCachedList = true;
+      }
+    } catch {
+      // Ignore invalid or unavailable storage and continue with the bundled snapshot.
+    }
+    if (!restoredCachedList) setUpdatedAt(SNAPSHOT_UPDATED_AT);
+
+    const media = window.matchMedia("(max-width: 760px)");
+    const updatePreviewMode = () => setUseLightweightPreview(media.matches);
+    updatePreviewMode();
+    if (media.addEventListener) media.addEventListener("change", updatePreviewMode);
+    else media.addListener?.(updatePreviewMode);
+
     let cancelCurrent = loadFiles();
     const refresh = () => {
       cancelCurrent();
@@ -91,6 +129,8 @@ export default function DownloadsPage() {
       cancelCurrent();
       window.clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisibility);
+      if (media.removeEventListener) media.removeEventListener("change", updatePreviewMode);
+      else media.removeListener?.(updatePreviewMode);
     };
   }, [loadFiles]);
 
@@ -126,7 +166,7 @@ export default function DownloadsPage() {
             </div>
             <div className={`resource-sync ${status}`} aria-live="polite">
               <span aria-hidden="true"></span>
-              {status === "loading" && "Loading files…"}
+              {status === "refreshing" && "Checking for updates…"}
               {status === "ready" && `${totalFiles} file${totalFiles === 1 ? "" : "s"} available`}
               {status === "stale" && "Showing saved list · refresh delayed"}
               {status === "error" && "Files could not load"}
@@ -154,7 +194,7 @@ export default function DownloadsPage() {
           </div>
 
           <div id="download-files-panel" className="resource-panel" role="tabpanel" aria-labelledby={`download-tab-${activeFormat}`}>
-            {status === "loading" ? (
+            {status === "loading" && totalFiles === 0 ? (
               <div className="resource-state"><span className="resource-spinner" aria-hidden="true"></span><h3>Loading {activeFormat.toUpperCase()} files</h3><p>Please wait a moment.</p></div>
             ) : status === "error" ? (
               <div className="resource-state error"><h3>Downloads are temporarily unavailable</h3><p>Refresh the page or contact PK LIGHTS on WhatsApp for the required file.</p><button type="button" onClick={loadFiles}>Try again</button></div>
@@ -184,7 +224,14 @@ export default function DownloadsPage() {
             {preview && preview.format === activeFormat && (
               <section className="resource-preview" aria-label={`Preview ${displayName(preview.name)}`}>
                 <div><h3>{displayName(preview.name)}</h3><button type="button" onClick={() => setPreview(null)}>Close</button></div>
-                <iframe title={`Preview ${displayName(preview.name)}`} src={`https://drive.google.com/file/d/${preview.id}/preview`} loading="lazy" allow="autoplay" />
+                {useLightweightPreview ? (
+                  <div className="resource-mobile-preview">
+                    <p>To reduce mobile data use, the full file preview opens only when you request it.</p>
+                    <a href={`https://drive.google.com/file/d/${encodeURIComponent(preview.id)}/preview`} target="_blank" rel="noopener noreferrer">Open preview in a new tab</a>
+                  </div>
+                ) : (
+                  <iframe title={`Preview ${displayName(preview.name)}`} src={`https://drive.google.com/file/d/${preview.id}/preview`} loading="lazy" allow="autoplay" />
+                )}
               </section>
             )}
           </div>
