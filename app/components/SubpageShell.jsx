@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import ShippingTicker from "./ShippingTicker";
 
 export default function SubpageShell({ eyebrow, title, intro, children }) {
   const [open, setOpen] = useState(false);
@@ -17,7 +18,7 @@ export default function SubpageShell({ eyebrow, title, intro, children }) {
   }, [open]);
   return (
     <main className="subpage">
-      <div className="utility-bar"><span>Wholesale enquiries</span><span>South India delivery</span><span>Mon–Sat · 10am–6pm</span></div>
+      <ShippingTicker />
       <header className="topbar subpage-nav">
         <a className="brand" href="/newVersion/" aria-label="PK LIGHTS home">
           <img src="/newVersion/images/pk-lights-logo.png" alt="PK LIGHTS" />
@@ -25,7 +26,7 @@ export default function SubpageShell({ eyebrow, title, intro, children }) {
         </a>
         <nav id="main-navigation" className={open ? "desktop-nav open" : "desktop-nav"} aria-label="Main navigation">
           <a href="/newVersion/" onClick={() => setOpen(false)}>Home</a><a href="/newVersion/#categories" onClick={() => setOpen(false)}>Products</a><a href="/newVersion/downloads.html" onClick={() => setOpen(false)}>Downloads</a>
-          <a href="/newVersion/help.html" onClick={() => setOpen(false)}>How We Work</a><a href="/newVersion/help.html#languages" onClick={() => setOpen(false)}>Languages</a><a href="/newVersion/contact.html" onClick={() => setOpen(false)}>Contact</a><a className="mobile-nav-quote" href="/newVersion/quote.html" onClick={() => setOpen(false)}>Detailed quote form</a>
+          <a href="/newVersion/help.html" onClick={() => setOpen(false)}>How We Work</a><a href="/newVersion/contact.html" onClick={() => setOpen(false)}>Contact</a><a className="mobile-nav-quote" href="/newVersion/quote.html" onClick={() => setOpen(false)}>Detailed quote form</a>
         </nav>
         <div className="header-actions"><a className="call-btn" href="tel:+919947089167">Call</a><a className="enquiry-nav simple" href="/newVersion/quote.html">Get Quote</a><button ref={menuButtonRef} className="menu-btn" onClick={() => setOpen(!open)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="main-navigation">{open ? "Close" : "Menu"}</button></div>
       </header>

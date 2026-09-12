@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ShippingTicker from "./components/ShippingTicker";
 
 export const dynamic = "force-static";
 
@@ -112,6 +113,8 @@ const products = [
 ];
 
 const categories = ["All", ...new Set(products.map((product) => product.category))];
+const PRODUCT_PHOTO_MESSAGE = "Hello PK LIGHTS, I need help identifying a lighting product. I will share a clear product photo, required quantity and delivery location.";
+const PRODUCT_PHOTO_URL = `https://wa.me/919947089167?text=${encodeURIComponent(PRODUCT_PHOTO_MESSAGE)}`;
 
 function categoryTabId(category) {
   return `product-tab-${category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
@@ -153,7 +156,7 @@ function Header({ cartCount, openCart }) {
   }, [menuOpen]);
   return (
     <>
-      <div className="utility-bar"><span>Wholesale enquiries</span><span>South India delivery</span><span>Mon–Sat · 10am–6pm</span></div>
+      <ShippingTicker />
       <header className="topbar">
         <a className="brand" href="#top" aria-label="PK LIGHTS home">
           <img src="/newVersion/images/pk-lights-logo.png" alt="PK LIGHTS" />
@@ -163,7 +166,6 @@ function Header({ cartCount, openCart }) {
           <a href="#categories" onClick={() => setMenuOpen(false)}>Products</a>
           <a href="/newVersion/downloads.html" onClick={() => setMenuOpen(false)}>Downloads</a>
           <a href="/newVersion/help.html" onClick={() => setMenuOpen(false)}>How We Work</a>
-          <a href="/newVersion/help.html#languages" onClick={() => setMenuOpen(false)}>Languages</a>
           <a href="/newVersion/contact.html" onClick={() => setMenuOpen(false)}>Contact</a>
           <a className="mobile-nav-quote" href="/newVersion/quote.html" onClick={() => setMenuOpen(false)}>Detailed quote form</a>
         </nav>
@@ -184,6 +186,7 @@ export default function HomePage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [sharedProduct, setSharedProduct] = useState(null);
   const [buyer, setBuyer] = useState({ business: "", city: "", note: "" });
   const modalRef = useRef(null);
   const drawerRef = useRef(null);
@@ -325,6 +328,26 @@ export default function HomePage() {
     window.setTimeout(() => setCopied(false), 1800);
   }
 
+  async function shareProduct(product) {
+    const url = `${window.location.origin}${window.location.pathname}#product-${product.id}`;
+    const text = `${product.name} — ${product.eyebrow}. MOQ: ${product.moqLabel}.`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `${product.name} | PK LIGHTS`, text, url });
+        return;
+      }
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setSharedProduct(product.id);
+      window.setTimeout(() => setSharedProduct(null), 1800);
+    } catch (error) {
+      if (error?.name !== "AbortError") {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        setSharedProduct(product.id);
+        window.setTimeout(() => setSharedProduct(null), 1800);
+      }
+    }
+  }
+
   return (
     <main id="top">
       <Header cartCount={cartCount} openCart={openDrawer} />
@@ -408,7 +431,7 @@ export default function HomePage() {
           {visibleProducts.map((product) => {
             const inCart = Boolean(cart[product.id]);
             return (
-              <article className="product-card" key={product.id}>
+              <article className="product-card" id={`product-${product.id}`} key={product.id}>
                 <button className="art-button" onClick={() => openProduct(product)} aria-label={`View ${product.name} details`}>
                   <ProductArt product={product} />
                   {product.featured && <span className="popular-chip">Popular</span>}
@@ -425,15 +448,25 @@ export default function HomePage() {
                       {inCart ? "Added ✓" : "Add to enquiry"}
                     </button>
                     <button className="details-btn" onClick={() => openProduct(product)}>Details</button>
+                    <button className="share-btn" aria-label={`Share ${product.name}`} onClick={() => shareProduct(product)}>{sharedProduct === product.id ? "Copied ✓" : "Share"}</button>
                   </div>
                 </div>
               </article>
             );
           })}
           {visibleProducts.length === 0 && (
-            <div className="empty-state"><h3>No exact match</h3><p>Try another category or a shorter search term.</p></div>
+            <div className="empty-state"><h3>No exact match</h3><p>Try another category, or send us a product photo for help.</p><a href={PRODUCT_PHOTO_URL} target="_blank" rel="noopener noreferrer">Send product photo</a></div>
           )}
         </div>
+      </section>
+
+      <section className="photo-help" aria-labelledby="photo-help-title">
+        <div>
+          <span className="kicker">Not sure of the model?</span>
+          <h2 id="photo-help-title">Send a product photo. We’ll help identify it.</h2>
+          <p>For a faster wholesale response, include a clear photo, required quantity, wattage or colour, and your delivery location.</p>
+        </div>
+        <a className="whatsapp-btn large" href={PRODUCT_PHOTO_URL} target="_blank" rel="noopener noreferrer">Send product photo on WhatsApp →</a>
       </section>
 
       <section className="wholesale" id="wholesale">
@@ -447,6 +480,21 @@ export default function HomePage() {
           <div><span>01</span><section><b>Reliable supply</b><p>Clear MOQ, availability and dispatch guidance for bulk buyers.</p></section></div>
           <div><span>02</span><section><b>Multi-category range</b><p>Commercial, decorative, programmable and electrical products.</p></section></div>
           <div><span>03</span><section><b>Direct WhatsApp support</b><p>Share requirements and receive product and quotation assistance.</p></section></div>
+        </div>
+      </section>
+
+      <section className="dispatch-proof" aria-labelledby="dispatch-title">
+        <img src="/newVersion/images/hero-warehouse-960.webp" alt="Lighting products organized for wholesale packing and dispatch" width="960" height="900" loading="lazy" decoding="async" />
+        <div className="dispatch-copy">
+          <span className="kicker">Delivery &amp; dispatch</span>
+          <h2 id="dispatch-title">Clear confirmation before every dispatch.</h2>
+          <p>We confirm the product, quantity, MOQ, current rate and delivery location before payment and packing.</p>
+          <div className="dispatch-steps">
+            <div><b>01</b><span>Order confirmed</span><small>Model, colour, wattage and quantity checked</small></div>
+            <div><b>02</b><span>Packed for transit</span><small>Confirmed wholesale orders prepared for parcel dispatch</small></div>
+            <div><b>03</b><span>Dispatch details shared</span><small>Parcel availability depends on destination and order size</small></div>
+          </div>
+          <a href="/newVersion/help.html#supplier-area">Check our service area →</a>
         </div>
       </section>
 
@@ -488,7 +536,10 @@ export default function HomePage() {
             <div className="spec-list">
               {selected.specs.map((spec) => <div key={spec}><span>✓</span>{spec}</div>)}
             </div>
-            <button className="primary-btn wide" onClick={() => { addProduct(selected); setSelected(null); setDrawerOpen(true); }}>Add to enquiry <span>→</span></button>
+            <div className="modal-actions">
+              <button className="primary-btn wide" onClick={() => { addProduct(selected); setSelected(null); setDrawerOpen(true); }}>Add to enquiry <span>→</span></button>
+              <button className="share-btn" aria-label={`Share ${selected.name}`} onClick={() => shareProduct(selected)}>{sharedProduct === selected.id ? "Link copied ✓" : "Share product"}</button>
+            </div>
           </div>
         </div>
       )}
